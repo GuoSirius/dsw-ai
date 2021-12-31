@@ -10,6 +10,7 @@ const gracefulFS = require('graceful-fs')
 
 const nodeConsoleColors = require("node-console-colors")
 
+const moment = require('moment')
 const axios = require('axios')
 const pLimit = require('p-limit')
 const Base64 = require('js-base64')
@@ -24,7 +25,7 @@ const OUTPUT_SUFFIX = '.txt'
 
 // /ai/api/wzsb
 const BASE_URL = 'https://ai.thunisoft.com'
-const TIMEOUT = 120 * 1000
+const TIMEOUT = 180 * 1000
 const CONCURRENCY_COUNT = 3
 
 console.log(`${INPUT_PATH}\r\n${OUTPUT_PATH}`)
@@ -37,6 +38,7 @@ run()
 
 // 开始执行
 function run() {
+  const begin = moment()
   const promiseLists = []
 
   const fileLists = getFileLists()
@@ -73,7 +75,12 @@ function run() {
     const total = results.length
     const successCount = results.filter(item => item.status === 'fulfilled').length
 
-    console.log(nodeConsoleColors.set('bg_cyan', `总数：${total}\r\n成功：${successCount}\r\n失败：${total - successCount}`))
+    const delta = moment().diff(begin, 'second', true)
+
+    console.log(nodeConsoleColors.set('bg_red', `耗时：${delta} 秒`))
+    console.log(nodeConsoleColors.set('bg_cyan', `总数：${total}`))
+    console.log(nodeConsoleColors.set('bg_cyan', `成功：${successCount}`))
+    console.log(nodeConsoleColors.set('bg_red', `失败：${total - successCount}`))
   })
 }
 
