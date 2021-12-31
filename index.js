@@ -4,6 +4,7 @@ const http = require('http')
 const https = require('https')
 
 const glob = require('glob')
+const makeDir = require('make-dir')
 const fsExtra = require('fs-extra')
 const gracefulFS = require('graceful-fs')
 
@@ -13,13 +14,18 @@ const axios = require('axios')
 const pLimit = require('p-limit')
 const Base64 = require('js-base64')
 
-const INPUT_PATTERN = '**/*.@(jpg|png)'
-const INPUT_PATH = path.posix.join(process.argv[2] || 'E:\\workspace\\sirius-admin\\packages\\AI\\郭之存-txt')
+const INPUT_SUFFIX = 'jpg|jpeg|png|bmp'
+const INPUT_PATTERN = `**/*.@(${INPUT_SUFFIX})`
+const INPUT_PATH = path.posix.join(process.argv[2] || 'D:\\workspace\\packages\\AI\\郭之存-txt')
+// const INPUT_PATH = path.posix.join(process.argv[2] || 'E:\\workspace\\sirius-admin\\packages\\AI\\郭之存-txt')
 const OUTPUT_PATH = path.resolve(INPUT_PATH, 'output-text')
+const OUTPUT_REGEXP = new RegExp(`\\.(${INPUT_SUFFIX})$`, 'i')
+const OUTPUT_SUFFIX = '.txt'
 
 // /ai/api/wzsb
 const BASE_URL = 'https://ai.thunisoft.com'
-const CONCURRENCY_COUNT = 10
+const TIMEOUT = 120 * 1000
+const CONCURRENCY_COUNT = 3
 
 console.log(`${INPUT_PATH}\r\n${OUTPUT_PATH}`)
 
@@ -35,10 +41,8 @@ function run() {
 
   const fileLists = getFileLists()
 
-  console.log(fileLists)
-
-  fileLists.slice(-1).forEach(item => {
-  // fileLists.forEach(item => {
+  // fileLists.slice(-1).forEach(item => {
+  fileLists.forEach(item => {
     function _recognizeOCR() {
       const filename = path.resolve(INPUT_PATH, item)
       const fileBase64 = readFileBase64(filename)
@@ -89,7 +93,21 @@ function readFileBase64(filename) {
 }
 
 // 输出结果
-function outputResult(result, name, filename) {}
+function outputResult(result, name, filename) {
+  const data = result.txtResult
+
+  const textFilename = filename.replace(OUTPUT_REGEXP, OUTPUT_SUFFIX)
+  const outputFilename = path.resolve(OUTPUT_PATH, name).replace(OUTPUT_REGEXP, OUTPUT_SUFFIX)
+
+  const textPathname = path.dirname(textFilename)
+  const outputPathname = path.dirname(outputFilename)
+
+  makeDir.sync(textPathname)
+  makeDir.sync(outputPathname)
+
+  if (OUTPUT_REGEXP.test(filename)) fs.writeFileSync(textFilename, data)
+  if (OUTPUT_REGEXP.test(name)) fs.writeFileSync(outputFilename, data)
+}
 
 // 识别 OCR
 function recognizeOCR(base64) {
@@ -120,7 +138,7 @@ function initializeRequest() {
 
   requestInstance = axios.create({
     baseURL: BASE_URL,
-    timeout: 0, // 10000
+    timeout: TIMEOUT, // 10000
     // withCredentials: false
   })
 
