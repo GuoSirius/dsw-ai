@@ -99,9 +99,51 @@ function readFileBase64(filename) {
   return fileBase64
 }
 
+// 处理标点符号
+function dealPunctuation(text) {
+  return String(text)
+    // 标点
+    .replace(/[，、]/g, ',')
+    .replace(/[。]/g, '.')
+    .replace(/[？]/g, '?')
+    .replace(/[！]/g, '!')
+    .replace(/[：]/g, ':')
+    .replace(/[；]/g, ';')
+    .replace(/[【〔]/g, '[')
+    .replace(/[】〕]/g, ']')
+    .replace(/[（]/g, '(')
+    .replace(/[）]/g, ')')
+    .replace(/[“”]/g, '"')
+    .replace(/[——]/g, '-')
+    // 日期时间
+    .replace(/(?<=[\[\(]\s*)((?:\d\s*?){4})(?=\s*[\]\)])/g, '{{time:$1}}')
+    .replace(/((?:[一二].{3,}?年)(?:.+?月)?(?:.+?[日号])?)/g, '{{time:$1}}')
+    .replace(/((?:(?:\d\s*){4}[-年])(?:(?:\s*\d){1,2}(?:\s*[-月]))?(?:(?:\s*\d){1,2}(?:\s*日)?)?(?:\s*(?:\d\s*){1,2}[:时])?(?:\s*(?:\d\s*){1,2}[:分])?(?:\s*(?:\d\s*){1,2}秒?)?)/g, '{{time:$1}}')
+    // 身份证号
+    .replace(/(([1-9]\d{5})([1-9]\d{3})((?:0[1-9])|(?:1[0-2]))((?:0[1-9])|(?:[12]\d)|(?:3[01]))(\d{3})([\dXx]))/g, '{{idcard:$1}}')
+    // 地点
+    // 机构
+    // 人名
+    // 物品
+    .replace(/(手\s*机)/g, '{{item_name:$1}}')
+    .replace(/(银\s*行\s*卡)/g, '{{item_name:$1}}')
+    .replace(/((?:[两二三]\s*轮\s*)?摩\s*托\s*车)/g, '{{item_name:$1}}')
+    .replace(/(电\s*动\s*车)/g, '{{item_name:$1}}')
+    .replace(/(小\s*车)/g, '{{item_name:$1}}')
+    .replace(/((?:[^\s](?:\s*\w\s*){6})?小\s*型\s*(?:普\s*通\s*)?[客货]\s*车)/g, '{{item_name:$1}}')
+    .replace(/(执\s*法\s*记\s*录\s*仪)/g, '{{item_name:$1}}')
+    // 回执、告知书、笔录
+    // .replace(/送\s*达\s*回\s*执/g, '送 达 回 执')
+    .replace(/(送\s*达\s*回\s*执)/g, '{{item_name:$1}}')
+    .replace(/(行\s*政\s*拘\s*留\s*执\s*行\s*回\s*执)/g, '{{item_name:$1}}')
+    .replace(/(行\s*政\s*处\s*罚\s*决\s*定\s*书)/g, '{{item_name:$1}}')
+    .replace(/(道\s*路\s*交\s*通\s*事\s*故\s*认\s*定\s*书)/g, '{{item_name:$1}}')
+}
+
 // 输出结果
 function outputResult(result, name, filename) {
   const data = result.txtResult
+  const text = dealPunctuation(data)
 
   const textFilename = filename.replace(OUTPUT_REGEXP, OUTPUT_SUFFIX)
   const outputFilename = path.resolve(OUTPUT_PATH, name).replace(OUTPUT_REGEXP, OUTPUT_SUFFIX)
@@ -112,8 +154,8 @@ function outputResult(result, name, filename) {
   makeDir.sync(textPathname)
   makeDir.sync(outputPathname)
 
-  if (OUTPUT_REGEXP.test(filename)) fs.writeFileSync(textFilename, data)
-  if (OUTPUT_REGEXP.test(name)) fs.writeFileSync(outputFilename, data)
+  if (OUTPUT_REGEXP.test(filename)) fs.writeFileSync(textFilename, text)
+  if (OUTPUT_REGEXP.test(name)) fs.writeFileSync(outputFilename, text)
 }
 
 // 识别 OCR
