@@ -16,12 +16,13 @@ const pLimit = require('p-limit')
 const Base64 = require('js-base64')
 
 const INPUT_SUFFIX = 'jpg|jpeg|png|bmp'
+const INPUT_REGEXP = new RegExp(`\\.(${INPUT_SUFFIX})$`, 'i')
 const INPUT_PATTERN = `**/*.@(${INPUT_SUFFIX})`
 const INPUT_PATH = path.posix.join(process.argv[2] || 'D:\\workspace\\packages\\AI\\郭之存-txt')
 // const INPUT_PATH = path.posix.join(process.argv[2] || 'E:\\workspace\\sirius-admin\\packages\\AI\\郭之存-txt')
 const OUTPUT_PATH = path.resolve(INPUT_PATH, 'output-text')
-const OUTPUT_REGEXP = new RegExp(`\\.(${INPUT_SUFFIX})$`, 'i')
 const OUTPUT_SUFFIX = '.txt'
+const IGNORE_REGEXP = /(ignore|ok|done|doing)/i
 
 // /ai/api/wzsb
 const BASE_URL = 'https://ai.thunisoft.com'
@@ -42,9 +43,12 @@ function run() {
   const promiseLists = []
 
   const fileLists = getFileLists()
+  const validFileLists = fileLists.filter(item => !IGNORE_REGEXP.test(item))
 
-  // fileLists.slice(-1).forEach(item => {
-  fileLists.forEach(item => {
+  // console.log(validFileLists)
+
+  // validFileLists.slice(-1).forEach(item => {
+  validFileLists.forEach(item => {
     function _recognizeOCR() {
       const filename = path.resolve(INPUT_PATH, item)
       const fileBase64 = readFileBase64(filename)
@@ -86,7 +90,30 @@ function run() {
 
 // 获取文件列表
 function getFileLists() {
-  const fileLists = glob.sync(INPUT_PATTERN, { cwd: INPUT_PATH })
+  if (!fs.existsSync(INPUT_PATH)) return []
+
+  const inputStat = fs.statSync(INPUT_PATH)
+
+  if (inputStat.isFile()) {
+    if (INPUT_REGEXP.test(INPUT_PATH)) {
+      return [path.resolve(INPUT_PATH)]
+    }
+
+    return []
+  }
+
+  const fileLists = glob.sync(INPUT_PATTERN, { 
+    // debug: true,
+    cwd: INPUT_PATH, 
+    nosort: false, 
+    nonull: false,
+    nocase: true,
+    nodir: true,
+    matchBase: true,
+    // realpath: true,
+    // absolute: true,
+    ignore: ['*@(ignore|ok|done|doing)*/**']
+  })
 
   return fileLists
 }
@@ -115,29 +142,62 @@ function dealPunctuation(text) {
     .replace(/[）]/g, ')')
     .replace(/[“”]/g, '"')
     .replace(/[——]/g, '-')
+    // 身份证号
+    .replace(/((?<!\d)([1-9]\d{5})([1-9]\d{3})((?:0[1-9])|(?:1[0-2]))((?:0[1-9])|(?:[12]\d)|(?:3[01]))(\d{3})([\dXx]))/g, '{{idcard:$1}}')
     // 日期时间
     .replace(/(?<=[\[\(]\s*)((?:\d\s*?){4})(?=\s*[\]\)])/g, '{{time:$1}}')
-    .replace(/((?:[一二].{3,}?年)(?:.+?月)?(?:.+?[日号])?)/g, '{{time:$1}}')
-    .replace(/((?:(?:\d\s*){4}[-年])(?:(?:\s*\d){1,2}(?:\s*[-月]))?(?:(?:\s*\d){1,2}(?:\s*日)?)?(?:\s*(?:\d\s*){1,2}[:时])?(?:\s*(?:\d\s*){1,2}[:分])?(?:\s*(?:\d\s*){1,2}秒?)?)/g, '{{time:$1}}')
-    // 身份证号
-    .replace(/(([1-9]\d{5})([1-9]\d{3})((?:0[1-9])|(?:1[0-2]))((?:0[1-9])|(?:[12]\d)|(?:3[01]))(\d{3})([\dXx]))/g, '{{idcard:$1}}')
+    .replace(/((?:[一二](?:0|\D){3,6}?年)(?:.+?月)?(?:.+?[日号])?)/g, '{{time:$1}}')
+    .replace(/((?:(?<!\d)[1-9]\s*(?:\d\s*){3}[-年.])(?:(?:\s*\d){1,2}(?:\s*[-月.]))?(?:(?:\s*\d){1,2}(?:\s*日)?)?(?:\s*(?:\d\s*){1,2}[:时])?(?:\s*(?:\d\s*){1,2}[:分])?(?:\s*(?:\d\s*){1,2}秒?)?)/g, '{{time:$1}}')
     // 地点
     // 机构
     // 人名
     // 物品
+    .replace(/([白啤]\s*酒)/g, '{{item_name:$1}}')
+    .replace(/(乙\s*醇)/g, '{{item_name:$1}}')
+    .replace(/(酒\s*精)/g, '{{item_name:$1}}')
+    .replace(/(杯\s*子)/g, '{{item_name:$1}}')
     .replace(/(手\s*机)/g, '{{item_name:$1}}')
     .replace(/(银\s*行\s*卡)/g, '{{item_name:$1}}')
-    .replace(/((?:[两二三]\s*轮\s*)?摩\s*托\s*车)/g, '{{item_name:$1}}')
-    .replace(/(电\s*动\s*车)/g, '{{item_name:$1}}')
-    .replace(/(小\s*车)/g, '{{item_name:$1}}')
-    .replace(/((?:[^\s](?:\s*\w\s*){6})?小\s*型\s*(?:普\s*通\s*)?[客货]\s*车)/g, '{{item_name:$1}}')
+    .replace(/((?:[^\s](?:\s*\w\s*){6})?(?:[两二三]\s*轮\s*)?摩\s*托\s*车)/g, '{{item_name:$1}}')
+    .replace(/((?:[^\s](?:\s*\w\s*){6})?电\s*动\s*(?:[两二三]\s*轮\s*)?车)/g, '{{item_name:$1}}')
+    .replace(/((?:[^\s](?:\s*\w\s*){6})?[小中大]\s*(?:型\s*)?(?:普\s*通\s*)?(?:[客货]\s*)?车)/g, '{{item_name:$1}}')
     .replace(/(执\s*法\s*记\s*录\s*仪)/g, '{{item_name:$1}}')
+    .replace(/(头\s*盔)/g, '{{item_name:$1}}')
+    .replace(/(车\s*牌)/g, '{{item_name:$1}}')
+    .replace(/([行驾]\s*驶\s*证)/g, '{{item_name:$1}}')
     // 回执、告知书、笔录
-    // .replace(/送\s*达\s*回\s*执/g, '送 达 回 执')
     .replace(/(送\s*达\s*回\s*执)/g, '{{item_name:$1}}')
     .replace(/(行\s*政\s*拘\s*留\s*执\s*行\s*回\s*执)/g, '{{item_name:$1}}')
+    .replace(/(立\s*案\s*决\s*定\s*书)/g, '{{item_name:$1}}')
     .replace(/(行\s*政\s*处\s*罚\s*决\s*定\s*书)/g, '{{item_name:$1}}')
+    .replace(/((?:不\s*)?批\s*准\s*逮\s*捕\s*决\s*定\s*书)/g, '{{item_name:$1}}')
+    .replace(/(退\s*回\s*补\s*充\s*侦\s*查\s*决\s*定\s*书)/g, '{{item_name:$1}}')
+    .replace(/((?:解\s*除\s*)?取\s*保\s*候\s*审\s*决\s*定\s*书)/g, '{{item_name:$1}}')
+    .replace(/((?:解\s*除\s*)?监\s*视\s*居\s*住\s*决\s*定\s*书)/g, '{{item_name:$1}}')
     .replace(/(道\s*路\s*交\s*通\s*事\s*故\s*认\s*定\s*书)/g, '{{item_name:$1}}')
+    .replace(/(受\s*案\s*登\s*记\s*表)/g, '{{item_name:$1}}')
+    .replace(/(当\s*事\s*人\s*血\s*样\s*提\s*取\s*登\s*记\s*表)/g, '{{item_name:$1}}')
+    .replace(/(提\s*讯\s*证)/g, '{{item_name:$1}}')
+    .replace(/(拘\s*留\s*证)/g, '{{item_name:$1}}')
+    .replace(/(换\s*押\s*证)/g, '{{item_name:$1}}')
+    .replace(/(提\s*讯\s*提\s*解\s*证)/g, '{{item_name:$1}}')
+    .replace(/(违\s*法\s*犯\s*罪\s*记\s*录\s*证\s*明)/g, '{{item_name:$1}}')
+    .replace(/(补\s*充\s*侦\s*查\s*提\s*纲)/g, '{{item_name:$1}}')
+    .replace(/(提\s*请\s*批\s*准\s*逮\s*捕\s*书)/g, '{{item_name:$1}}')
+    .replace(/(鉴\s*定\s*聘\s*请\s*书)/g, '{{item_name:$1}}')
+    .replace(/(侦\s*查\s*终\s*结\s*报\s*告\s*书)/g, '{{item_name:$1}}')
+    .replace(/(起\s*诉\s*意\s*见\s*书)/g, '{{item_name:$1}}')
+    .replace(/(司\s*法\s*鉴\s*定\s*意\s*见\s*书)/g, '{{item_name:$1}}')
+    .replace(/(立\s*案\s*告\s*知\s*书)/g, '{{item_name:$1}}')
+    .replace(/(移\s*送\s*起\s*诉\s*告\s*知\s*书)/g, '{{item_name:$1}}')
+    .replace(/(拘\s*留\s*通\s*知\s*书)/g, '{{item_name:$1}}')
+    .replace(/(鉴\s*定\s*意\s*见\s*通\s*知\s*书)/g, '{{item_name:$1}}')
+    .replace(/(鉴\s*定\s*结\s*论\s*通\s*知\s*书)/g, '{{item_name:$1}}')
+    .replace(/(变\s*更\s*羁\s*押\s*期\s*限\s*通\s*知\s*书)/g, '{{item_name:$1}}')
+    .replace(/(刑\s*事\s*案\s*件\s*电\s*子\s*卷\s*宗)/g, '{{item_name:$1}}')
+    .replace(/((?:询\s*问\s*\/\s*)?[询讯]\s*问\s*笔\s*录)/g, '{{item_name:$1}}')
+    .replace(/(宣\s*布\s*刑\s*事\s*拘\s*留\s*讯\s*问\s*笔\s*录)/g, '{{item_name:$1}}')
+    .replace(/(宣\s*布\s*延\s*长\s*刑\s*事\s*拘\s*留\s*期\s*限\s*讯\s*问\s*笔\s*录)/g, '{{item_name:$1}}')
 }
 
 // 输出结果
@@ -145,8 +205,8 @@ function outputResult(result, name, filename) {
   const data = result.txtResult
   const text = dealPunctuation(data)
 
-  const textFilename = filename.replace(OUTPUT_REGEXP, OUTPUT_SUFFIX)
-  const outputFilename = path.resolve(OUTPUT_PATH, name).replace(OUTPUT_REGEXP, OUTPUT_SUFFIX)
+  const textFilename = filename.replace(INPUT_REGEXP, OUTPUT_SUFFIX)
+  const outputFilename = path.resolve(OUTPUT_PATH, name).replace(INPUT_REGEXP, OUTPUT_SUFFIX)
 
   const textPathname = path.dirname(textFilename)
   const outputPathname = path.dirname(outputFilename)
@@ -154,8 +214,8 @@ function outputResult(result, name, filename) {
   makeDir.sync(textPathname)
   makeDir.sync(outputPathname)
 
-  if (OUTPUT_REGEXP.test(filename)) fs.writeFileSync(textFilename, text)
-  if (OUTPUT_REGEXP.test(name)) fs.writeFileSync(outputFilename, text)
+  if (INPUT_REGEXP.test(filename)) fs.writeFileSync(textFilename, text)
+  if (INPUT_REGEXP.test(name)) fs.writeFileSync(outputFilename, text)
 }
 
 // 识别 OCR
