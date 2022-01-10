@@ -147,7 +147,7 @@ function dealPunctuation(text) {
     // 日期时间
     .replace(/(?<=[\[\(]\s*)((?:\d\s*?){4})(?=\s*[\]\)])/g, '{{time:$1}}')
     .replace(/((?:[一二](?:0|\D){3,6}?年)(?:.+?月)?(?:.+?[日号])?)/g, '{{time:$1}}')
-    .replace(/((?:(?<!\d)[1-9]\s*(?:\d\s*){3}[-年.\/])(?:(?:\s*\d){1,2}(?:\s*[-月.\/]))?(?:(?:\s*\d){1,2}(?:\s*日)?)?(?:\s*(?:\d\s*){1,2}[:时])?(?:\s*(?:\d\s*){1,2}[:分])?(?:\s*(?:\d\s*){1,2}秒?)?)/g, '{{time:$1}}')
+    .replace(/((?:(?<!\d)[1-9]\s*(?:\d\s*){3}[-年.\/])(?:(?:\s*\d){1,2}(?:\s*[-月.\/]))?(?:(?:\s*\d){1,2}(?:\s*[日号])?)?(?:\s*(?:\d\s*){1,2}[:时])?(?:\s*(?:\d\s*){1,2}[:分])?(?:\s*(?:\d\s*){1,2}秒?)?)/g, '{{time:$1}}')
     // 地点
     // 机构
     // 人名
@@ -161,7 +161,10 @@ function dealPunctuation(text) {
     .replace(/((?:笔\s*记\s*本\s*)?电\s*脑)/g, '{{item_name:$1}}')
     .replace(/(麻\s*将)/g, '{{item_name:$1}}')
     .replace(/(扑\s*克\s*牌)/g, '{{item_name:$1}}')
+    .replace(/(现\s*金)/g, '{{item_name:$1}}')
+    .replace(/(人\s*民\s*币)/g, '{{item_name:$1}}')
     .replace(/(银\s*行\s*卡)/g, '{{item_name:$1}}')
+    .replace(/(信\s*用\s*卡)/g, '{{item_name:$1}}')
     .replace(/(居\s*民\s*身\s*份\s*证)/g, '{{item_name:$1}}')
     .replace(/((?:[^\s](?:\s*\w\s*){6})?(?:[两二三]\s*轮\s*)?摩\s*托\s*车)/g, '{{item_name:$1}}')
     .replace(/((?:[^\s](?:\s*\w\s*){6})?电\s*动\s*(?:[两二三]\s*轮\s*)?车)/g, '{{item_name:$1}}')
@@ -171,6 +174,7 @@ function dealPunctuation(text) {
     .replace(/(头\s*盔)/g, '{{item_name:$1}}')
     .replace(/(车\s*牌)/g, '{{item_name:$1}}')
     .replace(/([行驾]\s*驶\s*证)/g, '{{item_name:$1}}')
+    .replace(/(人\s*民\s*警\s*察\s*证)/g, '{{item_name:$1}}')
     // 回执、告知书、笔录
     .replace(/(送\s*达\s*回\s*执)/g, '{{item_name:$1}}')
     .replace(/(行\s*政\s*拘\s*留\s*执\s*行\s*回\s*执)/g, '{{item_name:$1}}')
