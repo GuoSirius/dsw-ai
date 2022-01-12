@@ -197,7 +197,8 @@ function dealPunctuation(text) {
     .replace(/(鉴\s*定\s*聘\s*请\s*书)/g, '{{item_name:$1}}')
     .replace(/(侦\s*查\s*终\s*结\s*报\s*告\s*书)/g, '{{item_name:$1}}')
     .replace(/(起\s*诉\s*意\s*见\s*书)/g, '{{item_name:$1}}')
-    .replace(/(司\s*法\s*鉴\s*定\s*意\s*见\s*书)/g, '{{item_name:$1}}')
+    .replace(/(司\s*法\s*鉴\s*定(?:\s*意\s*见\s*书|\s*许\s*可\s*证))/g, '{{item_name:$1}}')
+    .replace(/(道\s*路\s*交\s*通\s*事\s*故\s*认\s*定\s*书)/g, '{{item_name:$1}}')
     .replace(/(立\s*案\s*告\s*知\s*书)/g, '{{item_name:$1}}')
     .replace(/(移\s*送\s*起\s*诉\s*告\s*知\s*书)/g, '{{item_name:$1}}')
     .replace(/(拘\s*留\s*通\s*知\s*书)/g, '{{item_name:$1}}')
@@ -208,6 +209,20 @@ function dealPunctuation(text) {
     .replace(/((?:询\s*问\s*\/\s*)?[询讯]\s*问\s*笔\s*录)/g, '{{item_name:$1}}')
     .replace(/(宣\s*布\s*刑\s*事\s*拘\s*留\s*讯\s*问\s*笔\s*录)/g, '{{item_name:$1}}')
     .replace(/(宣\s*布\s*延\s*长\s*刑\s*事\s*拘\s*留\s*期\s*限\s*讯\s*问\s*笔\s*录)/g, '{{item_name:$1}}')
+    .replace(/(驾驶人信息查询结果)/g, '{{item_name:$1}}')
+    .replace(/((?:事故)?(?:现场|车辆)(?:车辆)?(?:照片|视频))/g, '{{item_name:$1}}')
+    .replace(/(到案经过)/g, '{{item_name:$1}}')
+    .replace(/(道路交通事故现场图)/g, '{{item_name:$1}}')
+    .replace(/(现场勘查笔录)/g, '{{item_name:$1}}')
+    .replace(/(当事人陈述材料)/g, '{{item_name:$1}}')
+    .replace(/(驾驶人信息查询结果单)/g, '{{item_name:$1}}')
+    .replace(/(机动车信息查询结果单)/g, '{{item_name:$1}}')
+    .replace(/(门诊病历复印件)/g, '{{item_name:$1}}')
+    .replace(/(血液样本)/g, '{{item_name:$1}}')
+    .replace(/(犯罪嫌疑人诉讼权利义务告知书)/g, '{{item_name:$1}}')
+    .replace(/(物证密封盒)/g, '{{item_name:$1}}')
+    .replace(/(行政案件权利义务告知书)/g, '{{item_name:$1}}')
+
 }
 
 // 输出结果
