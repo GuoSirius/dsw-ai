@@ -236,11 +236,6 @@ function dealPunctuation(text) {
     .replace(/(被害人诉讼权利义务告知书)/g, '{{item_name:$1}}')
     .replace(/(财务账户)/g, '{{item_name:$1}}')
     .replace(/(协助查询财产通知书)/g, '{{item_name:$1}}')
-    .replace(/(扣押物品强制措施凭证)/g, '{{item_name:$1}}')
-    .replace(/(扣押物品强制措施凭证)/g, '{{item_name:$1}}')
-    .replace(/(扣押物品强制措施凭证)/g, '{{item_name:$1}}')
-    .replace(/(扣押物品强制措施凭证)/g, '{{item_name:$1}}')
-    .replace(/(扣押物品强制措施凭证)/g, '{{item_name:$1}}')
 
 }
 
