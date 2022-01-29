@@ -245,16 +245,16 @@ function outputResult(result, name, filename) {
   const text = dealPunctuation(data)
 
   const textFilename = filename.replace(INPUT_REGEXP, OUTPUT_SUFFIX)
-  const outputFilename = path.resolve(OUTPUT_PATH, name).replace(INPUT_REGEXP, OUTPUT_SUFFIX)
+  // const outputFilename = path.resolve(OUTPUT_PATH, name).replace(INPUT_REGEXP, OUTPUT_SUFFIX)
 
   const textPathname = path.dirname(textFilename)
-  const outputPathname = path.dirname(outputFilename)
+  // const outputPathname = path.dirname(outputFilename)
 
   makeDir.sync(textPathname)
-  makeDir.sync(outputPathname)
+  // makeDir.sync(outputPathname)
 
   if (INPUT_REGEXP.test(filename)) fs.writeFileSync(textFilename, text)
-  if (INPUT_REGEXP.test(name)) fs.writeFileSync(outputFilename, text)
+  // if (INPUT_REGEXP.test(name)) fs.writeFileSync(outputFilename, text)
 }
 
 // 识别 OCR
